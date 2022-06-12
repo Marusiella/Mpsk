@@ -2,10 +2,12 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
+	"github.com/golang-jwt/jwt/v4"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -14,21 +16,26 @@ const (
 	Admin      = iota // 0
 	NormalUser = iota // 1
 )
+const LIFE_TIME = time.Hour * 1 // 1 hour
+const SECRET = "ljfmyhrmq1"
 
-// Create structs for our data models
+type Claims struct {
+	jwt.StandardClaims
+	User User
+}
 type User struct {
 	gorm.Model
 	Name     string
 	Email    string
 	Password string
 	Role     int
-	Groups   []*Group `gorm:"many2many:user_groups;"`
+	// Groups   []*Group `gorm:"many2many:user_groups;"`
 }
 type Group struct {
 	gorm.Model
 	Name  string
-	Users []*User `gorm:"many2many:user_groups;"`
-	Tasks []*Task `gorm:"many2many:group_tasks;"`
+	Users []User `gorm:"many2many:user_groups;"`
+	Tasks []Task `gorm:"many2many:group_tasks;"`
 }
 
 type Task struct {
@@ -36,11 +43,11 @@ type Task struct {
 	Name        string
 	Description string
 	Done        bool
-	Group       *[]Group `gorm:"many2many:group_tasks;"`
+	// Group       *[]Group `gorm:"many2many:group_tasks;"`
 }
 
 func main() {
-	dsn := "postgres://postgres:postgrespw@localhost:49155"
+	dsn := "postgres://postgres:postgrespw@localhost:49153"
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
@@ -58,7 +65,7 @@ func main() {
 	v1.Get("/getusers", func(c *fiber.Ctx) error {
 		// Get all users and his groups
 		var users []User
-		db.Preload("Groups").Find(&users)
+		db.Find(&users)
 		return c.JSON(users)
 
 	})
@@ -68,7 +75,7 @@ func main() {
 			return err
 		}
 		db.Create(&user)
-		return c.JSON(user)
+		return c.JSON(fiber.Map{"message": "User created successfully"})
 	})
 	v1.Post("/addgroup", func(c *fiber.Ctx) error {
 		var group Group
@@ -91,29 +98,45 @@ func main() {
 		if err := c.BodyParser(&data); err != nil {
 			return err
 		}
-		
+
 		var user User
 		// db.First(&user, data.UserID, 1)
 		db.Model(&User{}).Where("id = ?", data.UserID).First(&user)
 		var group Group
 		// db.First(&group, data.GroupID, 1)
 		db.Model(&Group{}).Where("id = ?", data.UserID).First(&group)
-		if group. == nil {
-			return c.Status(fiber.StatusBadRequest).SendString("Group not found")
+		if user.ID == 0 || group.ID == 0 {
+			return c.Status(400).SendString("User or group not found")
 		}
-
-		user.Groups = append(user.Groups, &group)
-		db.Save(&user)
+		group.Users = append(group.Users, user)
+		db.Save(&group)
 		return c.JSON(user)
 
 	})
 	v1.Post("/addtask", func(c *fiber.Ctx) error {
-		var task Task
-		if err := c.BodyParser(&task); err != nil {
-			return err
+		token := c.Get("JWT")
+		user := &Claims{}
+		_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
+			return []byte(SECRET), nil
+		})
+		if err != nil {
+			return c.Status(401).SendString("Unauthorized")
 		}
-		db.Create(&task)
-		return c.JSON(task)
+		if user.User.Role != Admin {
+			return c.Status(403).SendString("Forbidden")
+		}
+		if user.User.ID == 0 {
+			return c.Status(401).SendString("Unauthorized")
+		}
+		if user.User.Role == Admin {
+			var task Task
+			if err := c.BodyParser(&task); err != nil {
+				return err
+			}
+			db.Create(&task)
+			return c.JSON(task)
+		}
+		return c.Status(401).SendString("Unauthorized")
 	})
 	v1.Post("/assigntask", func(c *fiber.Ctx) error {
 		var data struct {
@@ -125,19 +148,47 @@ func main() {
 		}
 		var task Task
 		// db.First(&user, data.UserID, 1)
-		db.Model(&Task{}).Preload("Group").Where("id = ?", data.TaskID).First(&task)
+		db.Model(&Task{}).Where("id = ?", data.TaskID).First(&task)
 		var group Group
 		// db.First(&group, data.GroupID, 1)
 		db.Model(&Group{}).Where("id = ?", data.GroupID).First(&group)
-
-		group.Tasks = append(group.Tasks, &task)
-		db.Save(&task)
+		if task.ID == 0 || group.ID == 0 {
+			return c.Status(400).SendString("Task or group not found")
+		}
+		group.Tasks = append(group.Tasks, task)
+		db.Save(&group)
 		return c.JSON(task)
 	})
 	v1.Get("/gettasks", func(c *fiber.Ctx) error {
 		var task []Task
-		db.Preload("Group").Find(&task)
+		db.Find(&task)
 		return c.JSON(task)
+	})
+	v1.Post("/login", func(c *fiber.Ctx) error {
+		var data struct {
+			Email    string `json:"email"`
+			Password string `json:"password"`
+		}
+		if err := c.BodyParser(&data); err != nil {
+			return err
+		}
+		var user User
+		db.Where("email = ? AND password = ?", data.Email, data.Password).First(&user) // 2a@a.pl    asasas
+		if user.ID == 0 {
+			return c.Status(400).SendString("User not found")
+		}
+
+		t := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
+			StandardClaims: jwt.StandardClaims{
+				ExpiresAt: time.Now().Add(LIFE_TIME).Unix(),
+			},
+			User: user,
+		})
+		token, err := t.SignedString([]byte(SECRET))
+		if err != nil {
+			return err
+		}
+		return c.JSON(fiber.Map{"token": token})
 	})
 	log.Fatal(app.Listen(":3000"))
 }

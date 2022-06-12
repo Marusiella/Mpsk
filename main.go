@@ -17,7 +17,9 @@ const (
 	NormalUser = iota // 1
 )
 const LIFE_TIME = time.Hour * 1 // 1 hour
-const SECRET = "ljfmyhrmq1"
+const SECRET_JWT = "ljfmyhrmq1"
+
+var SECRET_PASSWORD = []byte("jkrtok9k")
 
 type Claims struct {
 	jwt.StandardClaims
@@ -52,8 +54,14 @@ func main() {
 	if err != nil {
 		panic("failed to connect database")
 	}
+	var isNew bool = false
+	if !db.Migrator().HasTable(&User{}) {
+		isNew = true
+	}
 	db.AutoMigrate(&User{}, &Group{}, &Task{})
-	// db.AutoMigrate(&Task{})
+	if isNew {
+		db.Create(&User{Name: "admin", Email: "admin@admin.pl", Password: "admin", Role: Admin})
+	}
 
 	app := fiber.New(fiber.Config{
 		BodyLimit: 1024 * 1024 * 512, // 512MB
@@ -117,7 +125,7 @@ func main() {
 		token := c.Get("JWT")
 		user := &Claims{}
 		_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
-			return []byte(SECRET), nil
+			return []byte(SECRET_JWT), nil
 		})
 		if err != nil {
 			return c.Status(401).SendString("Unauthorized")
@@ -184,7 +192,7 @@ func main() {
 			},
 			User: user,
 		})
-		token, err := t.SignedString([]byte(SECRET))
+		token, err := t.SignedString([]byte(SECRET_JWT))
 		if err != nil {
 			return err
 		}

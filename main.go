@@ -86,34 +86,123 @@ func main() {
 	api := app.Group("/api")
 	v1 := api.Group("/v1")
 	v1.Get("/getusers", func(c *fiber.Ctx) error {
-		// Get all users and his groups
-		var users []User
-		db.Find(&users)
-		return c.JSON(users)
+		token := c.Get("JWT")
+		user := &Claims{}
+		_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
+			return []byte(SECRET_JWT), nil
+		})
+		if err != nil {
+			return c.Status(401).SendString("Unauthorized")
+		}
+		if user.User.Role != Admin {
+			return c.Status(403).SendString("Forbidden")
+		}
+		if user.User.ID == 0 {
+			return c.Status(401).SendString("Unauthorized")
+		}
+		if user.User.Role == Admin {
+			var users []User
+			db.Find(&users)
+			return c.JSON(users)
+		} else {
+			return c.Status(403).SendString("Forbidden")
+		}
 
 	})
 	v1.Post("/adduser", func(c *fiber.Ctx) error {
-		var user User
-		if err := c.BodyParser(&user); err != nil {
-			return err
+		token := c.Get("JWT")
+		user := &Claims{}
+		_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
+			return []byte(SECRET_JWT), nil
+		})
+		if err != nil {
+			return c.Status(401).SendString("Unauthorized")
 		}
-		db.Create(&user)
-		return c.JSON(fiber.Map{"message": "User created successfully"})
+		if user.User.Role != Admin {
+			return c.Status(403).SendString("Forbidden")
+		}
+		if user.User.ID == 0 {
+			return c.Status(401).SendString("Unauthorized")
+		}
+
+		if user.User.Role == Admin {
+			var user User
+			if err := c.BodyParser(&user); err != nil {
+				return err
+			}
+			db.Create(&user)
+			return c.JSON(fiber.Map{"message": "User created successfully"})
+		} else {
+			return c.Status(403).SendString("Forbidden")
+		}
 	})
 	v1.Post("/addgroup", func(c *fiber.Ctx) error {
-		var group Group
-		if err := c.BodyParser(&group); err != nil {
-			return err
+		token := c.Get("JWT")
+		user := &Claims{}
+		_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
+			return []byte(SECRET_JWT), nil
+		})
+		if err != nil {
+			return c.Status(401).SendString("Unauthorized")
 		}
-		db.Create(&group)
-		return c.JSON(group)
+		if user.User.Role != Admin {
+			return c.Status(403).SendString("Forbidden")
+		}
+		if user.User.ID == 0 {
+			return c.Status(401).SendString("Unauthorized")
+		}
+
+		if user.User.Role == Admin {
+			var group Group
+			if err := c.BodyParser(&group); err != nil {
+				return err
+			}
+			db.Create(&group)
+			return c.JSON(group)
+		} else {
+			return c.Status(403).SendString("Forbidden")
+		}
 	})
 	v1.Get("/getgroups", func(c *fiber.Ctx) error {
-		var grupa []Group
-		db.Preload("Users").Preload("Tasks").Find(&grupa)
-		return c.JSON(grupa)
+		token := c.Get("JWT")
+		user := &Claims{}
+		_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
+			return []byte(SECRET_JWT), nil
+		})
+		if err != nil {
+			return c.Status(401).SendString("Unauthorized")
+		}
+		if user.User.Role != Admin {
+			return c.Status(403).SendString("Forbidden")
+		}
+		if user.User.ID == 0 {
+			return c.Status(401).SendString("Unauthorized")
+		}
+		if user.User.Role == Admin {
+			var grupa []Group
+			db.Preload("Users").Preload("Tasks").Find(&grupa)
+			return c.JSON(grupa)
+		} else {
+			return c.Status(403).SendString("Forbidden")
+		}
+
 	})
 	v1.Post("/addgrouptouser", func(c *fiber.Ctx) error {
+		token := c.Get("JWT")
+		user := &Claims{}
+		_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
+			return []byte(SECRET_JWT), nil
+		})
+		if err != nil {
+			return c.Status(401).SendString("Unauthorized")
+		}
+		if user.User.Role != Admin {
+			return c.Status(403).SendString("Forbidden")
+		}
+		if user.User.ID == 0 {
+			return c.Status(401).SendString("Unauthorized")
+		}
+
 		var data struct {
 			UserID  uint
 			GroupID uint
@@ -121,21 +210,25 @@ func main() {
 		if err := c.BodyParser(&data); err != nil {
 			return err
 		}
+		if user.User.Role == Admin {
 
-		var user User
-		// db.First(&user, data.UserID, 1)
-		db.Model(&User{}).Where("id = ?", data.UserID).First(&user)
-		var group Group
-		// db.First(&group, data.GroupID, 1)
-		db.Model(&Group{}).Where("id = ?", data.UserID).First(&group)
-		if user.ID == 0 || group.IDGroup == 0 {
-			return c.Status(400).SendString("User or group not found")
+			var user User
+			// db.First(&user, data.UserID, 1)
+			db.Model(&User{}).Where("id = ?", data.UserID).First(&user)
+			var group Group
+			// db.First(&group, data.GroupID, 1)
+			db.Model(&Group{}).Where("id = ?", data.UserID).First(&group)
+			if user.ID == 0 || group.IDGroup == 0 {
+				return c.Status(400).SendString("User or group not found")
+			}
+			group.Users = append(group.Users, user)
+			db.Save(&group)
+			return c.JSON(user)
+		} else {
+			return c.Status(403).SendString("Forbidden")
 		}
-		group.Users = append(group.Users, user)
-		db.Save(&group)
-		return c.JSON(user)
-
 	})
+	//kopiowanie
 	v1.Post("/addtask", func(c *fiber.Ctx) error {
 		token := c.Get("JWT")
 		user := &Claims{}
@@ -162,25 +255,43 @@ func main() {
 		return c.Status(401).SendString("Unauthorized")
 	})
 	v1.Post("/assigntask", func(c *fiber.Ctx) error {
-		var data struct {
-			TaskID  uint
-			GroupID uint
+		token := c.Get("JWT")
+		user := &Claims{}
+		_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
+			return []byte(SECRET_JWT), nil
+		})
+		if err != nil {
+			return c.Status(401).SendString("Unauthorized")
 		}
-		if err := c.BodyParser(&data); err != nil {
-			return err
+		if user.User.Role != Admin {
+			return c.Status(403).SendString("Forbidden")
 		}
-		var task Task
-		// db.First(&user, data.UserID, 1)
-		db.Model(&Task{}).Where("id = ?", data.TaskID).First(&task)
-		var group Group
-		// db.First(&group, data.GroupID, 1)
-		db.Model(&Group{}).Where("id = ?", data.GroupID).First(&group)
-		if task.ID == 0 || group.IDGroup == 0 {
-			return c.Status(400).SendString("Task or group not found")
+		if user.User.ID == 0 {
+			return c.Status(401).SendString("Unauthorized")
 		}
-		group.Tasks = append(group.Tasks, task)
-		db.Save(&group)
-		return c.JSON(task)
+		if user.User.Role == Admin {
+			var data struct {
+				TaskID  uint
+				GroupID uint
+			}
+			if err := c.BodyParser(&data); err != nil {
+				return err
+			}
+			var task Task
+			// db.First(&user, data.UserID, 1)
+			db.Model(&Task{}).Where("id = ?", data.TaskID).First(&task)
+			var group Group
+			// db.First(&group, data.GroupID, 1)
+			db.Model(&Group{}).Where("id = ?", data.GroupID).First(&group)
+			if task.ID == 0 || group.IDGroup == 0 {
+				return c.Status(400).SendString("Task or group not found")
+			}
+			group.Tasks = append(group.Tasks, task)
+			db.Save(&group)
+			return c.JSON(task)
+		} else {
+			return c.Status(403).SendString("Forbidden")
+		}
 	})
 	v1.Get("/gettasks", func(c *fiber.Ctx) error {
 		var group []Group

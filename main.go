@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"time"
 
@@ -8,7 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/golang-jwt/jwt/v4"
-	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -34,10 +35,13 @@ type User struct {
 	// Groups   []*Group `gorm:"many2many:user_groups;"`
 }
 type Group struct {
-	gorm.Model
-	Name  string
-	Users []User `gorm:"many2many:user_groups;"`
-	Tasks []Task `gorm:"many2many:group_tasks;"`
+	IDGroup   uint `gorm:"primarykey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt sql.NullTime
+	Name      string
+	Users     []User `gorm:"many2many:user_groups;"`
+	Tasks     []Task `gorm:"many2many:group_tasks;"`
 }
 
 type Task struct {
@@ -47,20 +51,31 @@ type Task struct {
 	Done        bool
 	// Group       *[]Group `gorm:"many2many:group_tasks;"`
 }
+type NoneType struct {
+	NotNew bool
+}
 
 func main() {
-	dsn := "postgres://postgres:postgrespw@localhost:49153"
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	// dsn := "postgres://postgres:postgrespw@localhost:49155"
+	// db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open("./db"), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}
-	var isNew bool = false
-	if !db.Migrator().HasTable(&User{}) {
-		isNew = true
-	}
-	db.AutoMigrate(&User{}, &Group{}, &Task{})
-	if isNew {
-		db.Create(&User{Name: "admin", Email: "admin@admin.pl", Password: "admin", Role: Admin})
+
+	db.AutoMigrate(&User{}, &Group{}, &Task{}, &NoneType{})
+	var test NoneType
+
+	if db.Model(&NoneType{}).First(&test).Error != nil {
+		db.Create(&NoneType{NotNew: true})
+		db.Create(&User{
+			Name:     "admin",
+			Email:    "admin@admin.pl",
+			Password: "admin",
+			Role:     Admin,
+		})
+	} else {
+		log.Println("Already created")
 	}
 
 	app := fiber.New(fiber.Config{
@@ -113,7 +128,7 @@ func main() {
 		var group Group
 		// db.First(&group, data.GroupID, 1)
 		db.Model(&Group{}).Where("id = ?", data.UserID).First(&group)
-		if user.ID == 0 || group.ID == 0 {
+		if user.ID == 0 || group.IDGroup == 0 {
 			return c.Status(400).SendString("User or group not found")
 		}
 		group.Users = append(group.Users, user)
@@ -160,7 +175,7 @@ func main() {
 		var group Group
 		// db.First(&group, data.GroupID, 1)
 		db.Model(&Group{}).Where("id = ?", data.GroupID).First(&group)
-		if task.ID == 0 || group.ID == 0 {
+		if task.ID == 0 || group.IDGroup == 0 {
 			return c.Status(400).SendString("Task or group not found")
 		}
 		group.Tasks = append(group.Tasks, task)
@@ -168,9 +183,31 @@ func main() {
 		return c.JSON(task)
 	})
 	v1.Get("/gettasks", func(c *fiber.Ctx) error {
-		var task []Task
-		db.Find(&task)
-		return c.JSON(task)
+		var group []Group
+		// db.Find(&task)
+		token := c.Get("JWT")
+		user := &Claims{}
+		_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
+			return []byte(SECRET_JWT), nil
+		})
+		if err != nil || user.User.ID == 0 {
+			return c.Status(401).SendString("Unauthorized")
+		}
+		if user.User.Role != Admin {
+			return c.Status(403).SendString("Forbidden")
+		}
+
+		if user.User.Role == NormalUser {
+			var grupa []Group
+			db.Preload("Users").Preload("Tasks").Where("ID = ?", user.User.ID).Find(&grupa)
+			return c.JSON(grupa)
+		}
+		if user.User.Role == Admin {
+			db.Preload("Tasks").Find(&group)
+			return c.JSON(group)
+		}
+		return c.Status(401).SendString("Unauthorized")
+		// return c.JSON(group)
 	})
 	v1.Post("/login", func(c *fiber.Ctx) error {
 		var data struct {
@@ -197,6 +234,19 @@ func main() {
 			return err
 		}
 		return c.JSON(fiber.Map{"token": token})
+	})
+	v1.Get("/ttt", func(c *fiber.Ctx) error {
+		token := c.Get("JWT")
+		user := &Claims{}
+		_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
+			return []byte(SECRET_JWT), nil
+		})
+		if err != nil {
+			return c.Status(401).SendString("Unauthorized")
+		}
+		var grupa []Group
+		db.Preload("Users").Preload("Tasks").Find(&grupa)
+		return c.JSON(grupa)
 	})
 	log.Fatal(app.Listen(":3000"))
 }

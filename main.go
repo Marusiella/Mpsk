@@ -136,6 +136,36 @@ func main() {
 			return c.Status(403).SendString("Forbidden")
 		}
 	})
+	v1.Post("/removeuser", func(c *fiber.Ctx) error {
+		token := c.Get("JWT")
+		user := &Claims{}
+		_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
+			return []byte(SECRET_JWT), nil
+		})
+		if err != nil {
+			return c.Status(401).SendString("Unauthorized")
+		}
+		if user.User.Role != Admin {
+			return c.Status(403).SendString("Forbidden")
+		}
+		if user.User.ID == 0 {
+			return c.Status(401).SendString("Unauthorized")
+		}
+		var data struct {
+			UserID uint `json:"user_id"`
+		}
+		if err := c.BodyParser(&data); err != nil {
+			return err
+		}
+		if user.User.Role == Admin {
+			var user User
+			db.First(&user, data.UserID)
+			db.Delete(&user)
+			return c.JSON(fiber.Map{"message": "User deleted successfully"})
+		} else {
+			return c.Status(403).SendString("Forbidden")
+		}
+	})
 	v1.Post("/addgroup", func(c *fiber.Ctx) error {
 		token := c.Get("JWT")
 		user := &Claims{}
@@ -217,7 +247,7 @@ func main() {
 			db.Model(&User{}).Where("id = ?", data.UserID).First(&user)
 			var group Group
 			// db.First(&group, data.GroupID, 1)
-			db.Model(&Group{}).Where("id = ?", data.UserID).First(&group)
+			db.Model(&Group{}).Where("id_group = ?", data.UserID).First(&group)
 			if user.ID == 0 || group.IDGroup == 0 {
 				return c.Status(400).SendString("User or group not found")
 			}
@@ -228,6 +258,51 @@ func main() {
 			return c.Status(403).SendString("Forbidden")
 		}
 	})
+	v1.Post("/removegrouptouser", func(c *fiber.Ctx) error {
+		token := c.Get("JWT")
+		user := &Claims{}
+		_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
+			return []byte(SECRET_JWT), nil
+		})
+		if err != nil {
+			return c.Status(401).SendString("Unauthorized")
+		}
+		if user.User.Role != Admin {
+			return c.Status(403).SendString("Forbidden")
+		}
+		if user.User.ID == 0 {
+			return c.Status(401).SendString("Unauthorized")
+		}
+		if user.User.Role == Admin {
+			var data struct {
+				UserID  uint
+				GroupID uint
+			}
+			if err := c.BodyParser(&data); err != nil {
+				return err
+			}
+			var user User
+			// db.First(&user, data.UserID, 1)
+			db.Model(&User{}).Where("id = ?", data.UserID).First(&user)
+			var group Group
+			// db.First(&group, data.GroupID, 1)
+			db.Model(&Group{}).Where("id_group = ?", data.UserID).First(&group)
+			if user.ID == 0 || group.IDGroup == 0 {
+				return c.Status(400).SendString("User or group not found")
+			}
+			for i, v := range group.Users {
+				if v.ID == user.ID {
+					group.Users = append(group.Users[:i], group.Users[i+1:]...)
+					break
+				}
+			}
+			db.Save(&group)
+			return c.JSON(user)
+		} else {
+			return c.Status(403).SendString("Forbidden")
+		}
+	})
+
 	//kopiowanie
 	v1.Post("/addtask", func(c *fiber.Ctx) error {
 		token := c.Get("JWT")
@@ -318,8 +393,42 @@ func main() {
 			return c.JSON(group)
 		}
 		return c.Status(401).SendString("Unauthorized")
-		// return c.JSON(group)
 	})
+	v1.Post("/deletetask", func(c *fiber.Ctx) error {
+		token := c.Get("JWT")
+		user := &Claims{}
+		_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
+			return []byte(SECRET_JWT), nil
+		})
+		if err != nil {
+			return c.Status(401).SendString("Unauthorized")
+		}
+		if user.User.Role != Admin {
+			return c.Status(403).SendString("Forbidden")
+		}
+		if user.User.ID == 0 {
+			return c.Status(401).SendString("Unauthorized")
+		}
+		if user.User.Role == Admin {
+			var data struct {
+				TaskID uint
+			}
+			if err := c.BodyParser(&data); err != nil {
+				return err
+			}
+			var task Task
+			// db.First(&user, data.UserID, 1)
+			db.Model(&Task{}).Where("id = ?", data.TaskID).First(&task)
+			if task.ID == 0 {
+				return c.Status(400).SendString("Task not found")
+			}
+			db.Delete(&task)
+			return c.JSON(task)
+		} else {
+			return c.Status(403).SendString("Forbidden")
+		}
+	})
+
 	v1.Post("/login", func(c *fiber.Ctx) error {
 		var data struct {
 			Email    string `json:"email"`
@@ -346,18 +455,18 @@ func main() {
 		}
 		return c.JSON(fiber.Map{"token": token})
 	})
-	v1.Get("/ttt", func(c *fiber.Ctx) error {
-		token := c.Get("JWT")
-		user := &Claims{}
-		_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
-			return []byte(SECRET_JWT), nil
-		})
-		if err != nil {
-			return c.Status(401).SendString("Unauthorized")
-		}
-		var grupa []Group
-		db.Preload("Users").Preload("Tasks").Find(&grupa)
-		return c.JSON(grupa)
-	})
+	// v1.Get("/ttt", func(c *fiber.Ctx) error {
+	// 	token := c.Get("JWT")
+	// 	user := &Claims{}
+	// 	_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
+	// 		return []byte(SECRET_JWT), nil
+	// 	})
+	// 	if err != nil {
+	// 		return c.Status(401).SendString("Unauthorized")
+	// 	}
+	// 	var grupa []Group
+	// 	db.Preload("Users").Preload("Tasks").Find(&grupa)
+	// 	return c.JSON(grupa)
+	// })
 	log.Fatal(app.Listen(":3000"))
 }

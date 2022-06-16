@@ -299,7 +299,7 @@ func AssignTaskToGroup(c *fiber.Ctx) error {
 }
 
 func GetAllGroups(c *fiber.Ctx) error {
-	var group []models.Group
+	var groups []models.Group
 	// database.DB.Find(&task)
 	token := c.Cookies("JWT")
 	user := &models.Claims{}
@@ -309,14 +309,26 @@ func GetAllGroups(c *fiber.Ctx) error {
 	if err != nil || user.User.ID == 0 {
 		return c.Status(401).SendString("Unauthorized")
 	}
-	log.Println(user.User.ID, user.User.Role)
 	if user.User.Role == models.Admin {
-		database.DB.Preload("Tasks").Find(&group)
-		return c.JSON(group)
+		database.DB.Preload("Tasks").Find(&groups)
+		return c.JSON(groups)
 	} else {
-		var grupa []models.Group
-		database.DB.Preload("Users").Preload("Tasks").Where("id = ?", user.User.ID).Find(&grupa)
-		return c.JSON(grupa)
+		// find user's groups but know that groups have users and tasks
+		database.DB.Preload("Users").Preload("Tasks").Find(&groups)
+		var group models.Group
+		for _, v := range groups {
+			for _, u := range v.Users {
+				if u.ID == user.User.ID {
+					log.Println("found user", u.ID, "in group", v.ID)
+					group = v
+					log.Println("group", group.ID, "has", len(group.Tasks), "tasks")
+					break
+
+				}
+			}
+		}
+
+		return c.JSON(group)
 	}
 	// return c.Status(401).SendString("Unauthorized")
 }

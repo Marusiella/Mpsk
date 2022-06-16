@@ -2,3 +2,4 @@
 .devcontainer/devcontainer.json
 .devcontainer/docker-compose.yml
 .devcontainer/.env
+main.exe

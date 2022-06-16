@@ -7,7 +7,12 @@ export default defineConfig({
   server: {
     port: 3030,
   },
-  plugins: [react(),VitePluginLinaria()
+  // set dist directory to ../public
+  build: {
+    outDir: '../public',
+  },
+  plugins: [react(),
+    // VitePluginLinaria()
 
 ]
 })

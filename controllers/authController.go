@@ -112,7 +112,10 @@ func AddGroup(c *fiber.Ctx) error {
 		if err := c.BodyParser(&group); err != nil {
 			return err
 		}
-		database.DB.Create(&group)
+		result := database.DB.Create(&group)
+		if result.Error != nil {
+			return c.Status(500).SendString("Internal server error")
+		}
 		return c.JSON(group)
 	} else {
 		return c.Status(403).SendString("Forbidden")
@@ -160,8 +163,8 @@ func AssignUserToGroup(c *fiber.Ctx) error {
 	}
 
 	var data struct {
-		UserID  uint
-		GroupID uint
+		UserID    uint
+		GroupName string
 	}
 	if err := c.BodyParser(&data); err != nil {
 		return err
@@ -173,7 +176,7 @@ func AssignUserToGroup(c *fiber.Ctx) error {
 		database.DB.Model(&models.User{}).Where("id = ?", data.UserID).First(&user)
 		var group models.Group
 		// database.DB.First(&group, data.GroupID, 1)
-		database.DB.Model(&models.Group{}).Where("id = ?", data.GroupID).First(&group)
+		database.DB.Model(&models.Group{}).Where("name = ?", data.GroupName).First(&group)
 		if user.ID == 0 || group.ID == 0 {
 			return c.Status(400).SendString("User or group not found")
 		}
@@ -202,8 +205,8 @@ func RemoveUserFromGroup(c *fiber.Ctx) error {
 	}
 	if user.User.Role == models.Admin {
 		var data struct {
-			UserID  uint
-			GroupID uint
+			UserID    uint
+			GroupName string
 		}
 		if err := c.BodyParser(&data); err != nil {
 			return err
@@ -213,7 +216,7 @@ func RemoveUserFromGroup(c *fiber.Ctx) error {
 		database.DB.Model(&models.User{}).Where("id = ?", data.UserID).First(&user)
 		var group models.Group
 		// database.DB.First(&group, data.GroupID, 1)
-		database.DB.Model(&models.Group{}).Where("id = ?", data.UserID).First(&group)
+		database.DB.Model(&models.Group{}).Where("name = ?", data.GroupName).First(&group)
 		if user.ID == 0 || group.ID == 0 {
 			return c.Status(400).SendString("User or group not found")
 		}
@@ -272,8 +275,8 @@ func AssignTaskToGroup(c *fiber.Ctx) error {
 	}
 	if user.User.Role == models.Admin {
 		var data struct {
-			TaskID  uint
-			GroupID uint
+			TaskID    uint
+			GroupName string
 		}
 		if err := c.BodyParser(&data); err != nil {
 			return err
@@ -283,7 +286,7 @@ func AssignTaskToGroup(c *fiber.Ctx) error {
 		database.DB.Model(&models.Task{}).Where("id = ?", data.TaskID).First(&task)
 		var group models.Group
 		// database.DB.First(&group, data.GroupID, 1)
-		database.DB.Model(&models.Group{}).Where("id = ?", data.GroupID).First(&group)
+		database.DB.Model(&models.Group{}).Where("name = ?", data.GroupName).First(&group)
 		if task.ID == 0 || group.ID == 0 {
 			return c.Status(400).SendString("Task or group not found")
 		}

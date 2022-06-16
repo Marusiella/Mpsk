@@ -3,4 +3,4 @@
 .devcontainer/docker-compose.yml
 .devcontainer/.env
 main.exe
-db
+db.db

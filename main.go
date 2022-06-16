@@ -18,7 +18,11 @@ func main() {
 	})
 	app.Use(logger.New())
 	app.Use(requestid.New())
-	app.Use(cors.New())
+	app.Use(cors.New(
+		cors.Config{
+			AllowCredentials: true,
+		},
+	))
 	routes.Configure(app)
 	database.FirstUser()
 

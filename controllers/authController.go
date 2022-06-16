@@ -12,7 +12,7 @@ import (
 )
 
 func GetUsers(c *fiber.Ctx) error {
-	token := c.Get("JWT")
+	token := c.Cookies("JWT")
 	user := &models.Claims{}
 	_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
 		return []byte(secrets.SECRET_JWT), nil
@@ -35,7 +35,7 @@ func GetUsers(c *fiber.Ctx) error {
 	}
 }
 func AddUser(c *fiber.Ctx) error {
-	token := c.Get("JWT")
+	token := c.Cookies("JWT")
 	user := &models.Claims{}
 	_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
 		return []byte(secrets.SECRET_JWT), nil
@@ -62,7 +62,7 @@ func AddUser(c *fiber.Ctx) error {
 	}
 }
 func RemoveUser(c *fiber.Ctx) error {
-	token := c.Get("JWT")
+	token := c.Cookies("JWT")
 	user := &models.Claims{}
 	_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
 		return []byte(secrets.SECRET_JWT), nil
@@ -92,7 +92,7 @@ func RemoveUser(c *fiber.Ctx) error {
 	}
 }
 func AddGroup(c *fiber.Ctx) error {
-	token := c.Get("JWT")
+	token := c.Cookies("JWT")
 	user := &models.Claims{}
 	_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
 		return []byte(secrets.SECRET_JWT), nil
@@ -120,7 +120,7 @@ func AddGroup(c *fiber.Ctx) error {
 }
 
 func GetGroups(c *fiber.Ctx) error {
-	token := c.Get("JWT")
+	token := c.Cookies("JWT")
 	user := &models.Claims{}
 	_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
 		return []byte(secrets.SECRET_JWT), nil
@@ -144,7 +144,7 @@ func GetGroups(c *fiber.Ctx) error {
 
 }
 func AssignUserToGroup(c *fiber.Ctx) error {
-	token := c.Get("JWT")
+	token := c.Cookies("JWT")
 	user := &models.Claims{}
 	_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
 		return []byte(secrets.SECRET_JWT), nil
@@ -186,7 +186,7 @@ func AssignUserToGroup(c *fiber.Ctx) error {
 }
 
 func RemoveUserFromGroup(c *fiber.Ctx) error {
-	token := c.Get("JWT")
+	token := c.Cookies("JWT")
 	user := &models.Claims{}
 	_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
 		return []byte(secrets.SECRET_JWT), nil
@@ -230,7 +230,7 @@ func RemoveUserFromGroup(c *fiber.Ctx) error {
 	}
 }
 func CreateNewTask(c *fiber.Ctx) error {
-	token := c.Get("JWT")
+	token := c.Cookies("JWT")
 	user := &models.Claims{}
 	_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
 		return []byte(secrets.SECRET_JWT), nil
@@ -255,7 +255,7 @@ func CreateNewTask(c *fiber.Ctx) error {
 	return c.Status(401).SendString("Unauthorized")
 }
 func AssignTaskToGroup(c *fiber.Ctx) error {
-	token := c.Get("JWT")
+	token := c.Cookies("JWT")
 	user := &models.Claims{}
 	_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
 		return []byte(secrets.SECRET_JWT), nil
@@ -297,7 +297,7 @@ func AssignTaskToGroup(c *fiber.Ctx) error {
 func GetAllGroups(c *fiber.Ctx) error {
 	var group []models.Group
 	// database.DB.Find(&task)
-	token := c.Get("JWT")
+	token := c.Cookies("JWT")
 	user := &models.Claims{}
 	_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
 		return []byte(secrets.SECRET_JWT), nil
@@ -322,7 +322,7 @@ func GetAllGroups(c *fiber.Ctx) error {
 }
 
 func DeleteTask(c *fiber.Ctx) error {
-	token := c.Get("JWT")
+	token := c.Cookies("JWT")
 	user := &models.Claims{}
 	_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
 		return []byte(secrets.SECRET_JWT), nil
@@ -384,5 +384,12 @@ func LoginUser(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	return c.JSON(fiber.Map{"token": token})
+	cookie := fiber.Cookie{
+		Name:    "JWT",
+		Value:   token,
+		Expires: time.Now().Add(secrets.LIFE_TIME),
+		Path:    "/",
+	}
+	c.Cookie(&cookie)
+	return c.JSON(fiber.Map{"result": "success"})
 }

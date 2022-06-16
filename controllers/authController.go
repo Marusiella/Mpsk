@@ -173,8 +173,8 @@ func AssignUserToGroup(c *fiber.Ctx) error {
 		database.DB.Model(&models.User{}).Where("id = ?", data.UserID).First(&user)
 		var group models.Group
 		// database.DB.First(&group, data.GroupID, 1)
-		database.DB.Model(&models.Group{}).Where("id_group = ?", data.UserID).First(&group)
-		if user.ID == 0 || group.IDGroup == 0 {
+		database.DB.Model(&models.Group{}).Where("id = ?", data.GroupID).First(&group)
+		if user.ID == 0 || group.ID == 0 {
 			return c.Status(400).SendString("User or group not found")
 		}
 		group.Users = append(group.Users, user)
@@ -213,8 +213,8 @@ func RemoveUserFromGroup(c *fiber.Ctx) error {
 		database.DB.Model(&models.User{}).Where("id = ?", data.UserID).First(&user)
 		var group models.Group
 		// database.DB.First(&group, data.GroupID, 1)
-		database.DB.Model(&models.Group{}).Where("id_group = ?", data.UserID).First(&group)
-		if user.ID == 0 || group.IDGroup == 0 {
+		database.DB.Model(&models.Group{}).Where("id = ?", data.UserID).First(&group)
+		if user.ID == 0 || group.ID == 0 {
 			return c.Status(400).SendString("User or group not found")
 		}
 		for i, v := range group.Users {
@@ -250,6 +250,7 @@ func CreateNewTask(c *fiber.Ctx) error {
 			return err
 		}
 		database.DB.Create(&task)
+		database.DB.First(&task)
 		return c.JSON(task)
 	}
 	return c.Status(401).SendString("Unauthorized")
@@ -283,7 +284,7 @@ func AssignTaskToGroup(c *fiber.Ctx) error {
 		var group models.Group
 		// database.DB.First(&group, data.GroupID, 1)
 		database.DB.Model(&models.Group{}).Where("id = ?", data.GroupID).First(&group)
-		if task.ID == 0 || group.IDGroup == 0 {
+		if task.ID == 0 || group.ID == 0 {
 			return c.Status(400).SendString("Task or group not found")
 		}
 		group.Tasks = append(group.Tasks, task)
@@ -305,20 +306,16 @@ func GetAllGroups(c *fiber.Ctx) error {
 	if err != nil || user.User.ID == 0 {
 		return c.Status(401).SendString("Unauthorized")
 	}
-	if user.User.Role != models.Admin {
-		return c.Status(403).SendString("Forbidden")
-	}
-
-	if user.User.Role == models.NormalUser {
-		var grupa []models.Group
-		database.DB.Preload("Users").Preload("Tasks").Where("ID = ?", user.User.ID).Find(&grupa)
-		return c.JSON(grupa)
-	}
+	log.Println(user.User.ID, user.User.Role)
 	if user.User.Role == models.Admin {
 		database.DB.Preload("Tasks").Find(&group)
 		return c.JSON(group)
+	} else {
+		var grupa []models.Group
+		database.DB.Preload("Users").Preload("Tasks").Where("id = ?", user.User.ID).Find(&grupa)
+		return c.JSON(grupa)
 	}
-	return c.Status(401).SendString("Unauthorized")
+	// return c.Status(401).SendString("Unauthorized")
 }
 
 func DeleteTask(c *fiber.Ctx) error {

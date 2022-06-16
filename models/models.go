@@ -1,9 +1,6 @@
 package models
 
 import (
-	"database/sql"
-	"time"
-
 	"github.com/golang-jwt/jwt/v4"
 	"gorm.io/gorm"
 )
@@ -26,13 +23,10 @@ type User struct {
 	// Groups   []*Group `gorm:"many2many:user_groups;"`
 }
 type Group struct {
-	IDGroup   uint `gorm:"primarykey"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt sql.NullTime
-	Name      string
-	Users     []User `gorm:"many2many:user_groups;"`
-	Tasks     []Task `gorm:"many2many:group_tasks;"`
+	gorm.Model
+	Name  string `gorm:"unique"`
+	Users []User `gorm:"many2many:user_groups;"`
+	Tasks []Task `gorm:"many2many:group_tasks;"`
 }
 
 type Task struct {

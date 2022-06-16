@@ -23,6 +23,7 @@ func main() {
 			AllowCredentials: true,
 		},
 	))
+	database.Connect()
 	routes.Configure(app)
 	database.FirstUser()
 

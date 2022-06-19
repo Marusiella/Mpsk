@@ -11,6 +11,7 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { adress } from "./main";
+import { useNavigate } from "react-router-dom";
 
 interface FormData {
   name: string;
@@ -18,31 +19,37 @@ interface FormData {
   email: string;
   password: string;
 }
-function HandleLogin(params: FormData) {
-  fetch(adress + "/api/v1/adduser", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-    body: JSON.stringify({
-      Name: params.name,
-      Surname: params.surname,
-      Email: params.email,
-      Password: params.password,
-      Role: 0,
-    }),
-  })
-    .then((res) => res.json())
-    .then((res) => {
-      console.log(res);
-    });
-  fetch(adress + "/api/v1/changeadmin", { credentials: "include" })
-    .then((res) => res.json())
-    .then((res) => console.log(res));
+interface ChangeData {
+  result: string;
 }
 
 export default function App() {
+  let navigate = useNavigate();
+  function HandleLogin(params: FormData) {
+    fetch(adress + "/api/v1/adduser", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        Name: params.name,
+        Surname: params.surname,
+        Email: params.email,
+        Password: params.password,
+        Role: 0,
+      }),
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        console.log(res);
+      });
+    fetch(adress + "/api/v1/changeadmin", { credentials: "include" })
+      .then((res) => res.json())
+      .then((res: ChangeData) =>
+        res.result == "success" ? navigate("/") : console.log("error")
+      );
+  }
   const form = useForm({
     initialValues: {
       name: "",

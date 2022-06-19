@@ -27,18 +27,5 @@ func main() {
 	database.FirstUser()
 	routes.Configure(app)
 
-	// v1.Get("/ttt", func(c *fiber.Ctx) error {
-	// 	token := c.Get("JWT")
-	// 	user := &Claims{}
-	// 	_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
-	// 		return []byte(SECRET_JWT), nil
-	// 	})
-	// 	if err != nil {
-	// 		return c.Status(401).SendString("Unauthorized")
-	// 	}
-	// 	var grupa []Group
-	// 	db.Preload("Users").Preload("Tasks").Find(&grupa)
-	// 	return c.JSON(grupa)
-	// })
 	log.Fatal(app.Listen(":3000"))
 }

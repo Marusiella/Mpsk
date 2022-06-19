@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  Affix,
   Box,
   Button,
   Center,
@@ -12,7 +13,9 @@ import {
 import { useForm } from "@mantine/form";
 import { useNavigate } from "react-router-dom";
 import { adress } from "./main";
-
+import { Notification } from "@mantine/core";
+import { X } from "tabler-icons-react";
+import { showNotification } from "@mantine/notifications";
 interface FormData {
   email: string;
   password: string;
@@ -33,10 +36,21 @@ export default function App() {
       credentials: "include",
       body: JSON.stringify(params),
     });
+    if (a.status != 200) {
+      showNotification({
+        message: "Login failed",
+        color: "red",
+        icon: <X />,
+      });
+      return;
+    }
+
     var b: LoginResponse = await a.json();
-    console.log(b);
     if (b.HaveToCreateNewUser) {
       navigate("/changeAdmin");
+    }
+    if (b.result === "success" && !b.HaveToCreateNewUser) {
+      navigate("/home");
     }
   }
 

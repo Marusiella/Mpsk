@@ -456,6 +456,7 @@ func ChangeAdmin(c *fiber.Ctx) error {
 	if user.User.Role == models.Admin && user.User.Email == "admin@admin.pl" {
 
 		database.DB.Where("email LIKE ?", "admin@admin.pl").Delete(&user.User)
+		database.HaveToCreateFirstUser = false
 		return c.JSON(fiber.Map{"result": "success"})
 	} else {
 		return c.Status(403).SendString("Forbidden")

@@ -5,6 +5,8 @@ import (
 	"log"
 )
 
+var HaveToCreateFirstUser = true
+
 func FirstUser() {
 	var test models.NoneType
 
@@ -18,5 +20,6 @@ func FirstUser() {
 		})
 	} else {
 		log.Println("Already created")
+		HaveToCreateFirstUser = false
 	}
 }

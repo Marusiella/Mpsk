@@ -44,22 +44,38 @@ export default function App() {
   return (
     <Center>
       <Box px={"30vw"}>
-        <Text weight={"bold"} style={{ fontSize: 100 }}>
+        <Text weight={"bold"} style={{ fontSize: 100 }} align={"center"}>
           Mpsk
         </Text>
         <Text weight={"inherit"} style={{ fontSize: 40 }} align={"center"}>
-          Login into
+          You have to create username for admin user
         </Text>
         <form onSubmit={form.onSubmit((values) => HandleLogin(values))}>
           <TextInput
             required
-            label="Email"
-            type="email"
-            placeholder="your@email.com"
+            label="Name"
+            type="text"
+            placeholder="Adam"
+            {...form.getInputProps("email")}
+            size={"md"}
+          />
+          <TextInput
+            required
+            label="Surname"
+            type="text"
+            placeholder="Nowak"
             {...form.getInputProps("email")}
             size={"md"}
           />
 
+          <TextInput
+            required
+            label="Email"
+            type="email"
+            placeholder="admin@admin.pl"
+            {...form.getInputProps("email")}
+            size={"md"}
+          />
           <PasswordInput
             required
             label="Password"

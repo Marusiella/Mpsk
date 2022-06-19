@@ -24,8 +24,8 @@ func main() {
 		},
 	))
 	database.Connect()
-	routes.Configure(app)
 	database.FirstUser()
+	routes.Configure(app)
 
 	// v1.Get("/ttt", func(c *fiber.Ctx) error {
 	// 	token := c.Get("JWT")

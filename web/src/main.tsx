@@ -2,14 +2,17 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import { Global, MantineProvider } from "@mantine/core";
-import { css } from "@linaria/core";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import ChangeAdmin from "./ChangeAdmin";
+
+
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <MantineProvider
       theme={{
         fontFamily: "Roboto, sans serif",
-       
+
         spacing: { xs: 15, sm: 20, md: 25, lg: 30, xl: 40 },
       }}
     >
@@ -27,7 +30,12 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           },
         })}
       />
-      <App />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<App />}/>
+          <Route path="/changeAdmin" element={<ChangeAdmin />}/>
+        </Routes>
+      </BrowserRouter>
     </MantineProvider>
   </React.StrictMode>
 );

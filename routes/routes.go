@@ -8,6 +8,7 @@ import (
 
 func Configure(app *fiber.App) {
 	app.Static("/", "public")
+	app.Static("/changeAdmin", "public")
 	api := app.Group("/api")
 	v1 := api.Group("/v1")
 	v1.Get("/getusers", controllers.GetUsers)
@@ -22,4 +23,5 @@ func Configure(app *fiber.App) {
 	v1.Get("/gettasks", controllers.GetAllGroups)
 	v1.Post("/deletetask", controllers.DeleteTask)
 	v1.Post("/login", controllers.LoginUser)
+	v1.Get("/havetocreatefirstuser", controllers.HaveToCreateFirstUser)
 }

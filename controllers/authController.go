@@ -405,3 +405,11 @@ func LoginUser(c *fiber.Ctx) error {
 	c.Cookie(&cookie)
 	return c.JSON(fiber.Map{"result": "success"})
 }
+func HaveToCreateFirstUser(c *fiber.Ctx) error {
+	if database.HaveToCreateFirstUser {
+		return c.Status(200).JSON(fiber.Map{"result": true})
+	} else {
+		return c.Status(200).JSON(fiber.Map{"result": false})
+	}
+
+}

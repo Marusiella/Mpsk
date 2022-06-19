@@ -10,25 +10,36 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { useNavigate } from "react-router-dom";
+import { adress } from "./main";
 
 interface FormData {
   email: string;
   password: string;
 }
-async function HandleLogin(params: FormData) {
-  var a = await fetch("http://localhost:3000/api/v1/login", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-    body: JSON.stringify(params),
-  });
-  var b = await a.json();
-  console.log(b);
+interface LoginResponse {
+  HaveToCreateNewUser: boolean;
+  result: string;
 }
 
 export default function App() {
+  let navigate = useNavigate();
+  async function HandleLogin(params: FormData) {
+    var a = await fetch(adress + "/api/v1/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(params),
+    });
+    var b: LoginResponse = await a.json();
+    console.log(b);
+    if (b.HaveToCreateNewUser) {
+      navigate("/changeAdmin");
+    }
+  }
+
   const form = useForm({
     initialValues: {
       email: "",

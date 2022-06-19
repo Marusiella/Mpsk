@@ -432,3 +432,32 @@ func LoginUser(c *fiber.Ctx) error {
 // 	}
 
 // }
+
+func ChangeAdmin(c *fiber.Ctx) error {
+	token := c.Cookies("JWT")
+	log.Println("token", token)
+	user := &models.Claims{}
+	_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
+		return []byte(secrets.SECRET_JWT), nil
+	})
+	log.Println(user)
+	if err != nil {
+		return c.Status(401).SendString("Unauthorized")
+	}
+	if user.User.Role != models.Admin {
+		return c.Status(403).SendString("Forbidden")
+	}
+
+	if user.User.ID == 0 {
+		return c.Status(401).SendString("Unauthorized")
+	}
+	log.Println("user", user.User.ID, "is admin")
+	log.Println("user", user.User.Email, "is admin")
+	if user.User.Role == models.Admin && user.User.Email == "admin@admin.pl" {
+
+		database.DB.Where("email LIKE ?", "admin@admin.pl").Delete(&user.User)
+		return c.JSON(fiber.Map{"result": "success"})
+	} else {
+		return c.Status(403).SendString("Forbidden")
+	}
+}

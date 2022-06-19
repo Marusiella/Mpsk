@@ -10,35 +10,52 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { adress } from "./main";
 
 interface FormData {
+  name: string;
+  surname: string;
   email: string;
   password: string;
 }
 function HandleLogin(params: FormData) {
-  fetch("http://localhost:3000/api/v1/login", {
+  fetch(adress + "/api/v1/adduser", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     credentials: "include",
-    body: JSON.stringify(params),
+    body: JSON.stringify({
+      Name: params.name,
+      Surname: params.surname,
+      Email: params.email,
+      Password: params.password,
+      Role: 0,
+    }),
   })
     .then((res) => res.json())
     .then((res) => {
       console.log(res);
     });
+  fetch(adress + "/api/v1/changeadmin", { credentials: "include" })
+    .then((res) => res.json())
+    .then((res) => console.log(res));
 }
 
 export default function App() {
   const form = useForm({
     initialValues: {
+      name: "",
+      surname: "",
       email: "",
       password: "",
     },
 
     validate: {
-      email: (value) => (/^\S+@\S+$/.test(value) ? null : "Invalid email"),
+      email: (value) =>
+        /^\S+@\S+$/.test(value) || value == "admin@admin.pl"
+          ? null
+          : "Invalid email",
     },
   });
   return (
@@ -56,7 +73,7 @@ export default function App() {
             label="Name"
             type="text"
             placeholder="Adam"
-            {...form.getInputProps("email")}
+            {...form.getInputProps("name")}
             size={"md"}
           />
           <TextInput
@@ -64,7 +81,7 @@ export default function App() {
             label="Surname"
             type="text"
             placeholder="Nowak"
-            {...form.getInputProps("email")}
+            {...form.getInputProps("surname")}
             size={"md"}
           />
 

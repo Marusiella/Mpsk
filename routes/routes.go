@@ -23,5 +23,6 @@ func Configure(app *fiber.App) {
 	v1.Get("/gettasks", controllers.GetAllGroups)
 	v1.Post("/deletetask", controllers.DeleteTask)
 	v1.Post("/login", controllers.LoginUser)
+	v1.Get("/changeadmin", controllers.ChangeAdmin)
 	// v1.Get("/havetocreatefirstuser", controllers.HaveToCreateFirstUser)
 }

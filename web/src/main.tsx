@@ -5,7 +5,7 @@ import { Global, MantineProvider } from "@mantine/core";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import ChangeAdmin from "./ChangeAdmin";
 
-
+export var adress = import.meta.env.PROD ? "" : "http://localhost:3000";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -32,8 +32,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<App />}/>
-          <Route path="/changeAdmin" element={<ChangeAdmin />}/>
+          <Route path="/" element={<App />} />
+          <Route path="/changeAdmin" element={<ChangeAdmin />} />
         </Routes>
       </BrowserRouter>
     </MantineProvider>

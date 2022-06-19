@@ -15,19 +15,17 @@ interface FormData {
   email: string;
   password: string;
 }
-function HandleLogin(params: FormData) {
-  fetch("http://localhost:3000/api/v1/login", {
+async function HandleLogin(params: FormData) {
+  var a = await fetch("http://localhost:3000/api/v1/login", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     credentials: "include",
     body: JSON.stringify(params),
-  })
-    .then((res) => res.json())
-    .then((res) => {
-      console.log(res);
-    });
+  });
+  var b = await a.json();
+  console.log(b);
 }
 
 export default function App() {

@@ -403,13 +403,32 @@ func LoginUser(c *fiber.Ctx) error {
 		Path:    "/",
 	}
 	c.Cookie(&cookie)
-	return c.JSON(fiber.Map{"result": "success"})
+	return c.JSON(fiber.Map{"result": "success", "HaveToCreateNewUser": database.HaveToCreateFirstUser})
 }
-func HaveToCreateFirstUser(c *fiber.Ctx) error {
-	if database.HaveToCreateFirstUser {
-		return c.Status(200).JSON(fiber.Map{"result": true})
-	} else {
-		return c.Status(200).JSON(fiber.Map{"result": false})
-	}
 
-}
+// func HaveToCreateFirstUser(c *fiber.Ctx) error {
+// 	token := c.Cookies("JWT")
+// 	user := &models.Claims{}
+// 	_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
+// 		return []byte(secrets.SECRET_JWT), nil
+// 	})
+// 	if err != nil {
+// 		return c.Status(401).SendString("Unauthorized")
+// 	}
+// 	if user.User.Role != models.Admin {
+// 		return c.Status(403).SendString("Forbidden")
+// 	}
+// 	if user.User.ID == 0 {
+// 		return c.Status(401).SendString("Unauthorized")
+// 	}
+// 	if user.User.Role == models.Admin {
+// 		if database.HaveToCreateFirstUser {
+// 			return c.Status(200).JSON(fiber.Map{"result": true})
+// 		} else {
+// 			return c.Status(200).JSON(fiber.Map{"result": false})
+// 		}
+// 	} else {
+// 		return c.Status(403).SendString("Forbidden")
+// 	}
+
+// }

@@ -130,6 +130,17 @@ export default function HomePage() {
                 <Text>
                   {user.Name} {user.Surname}
                 </Text>
+                <Text
+                  sx={{
+                    fontSize: 12,
+                    textOverflow: "ellipsis",
+                    overflow: "hidden",
+                    maxWidth: "100%",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {user.Email}
+                </Text>
               </Box>
             ))}
           </Aside>

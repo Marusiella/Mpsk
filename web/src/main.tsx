@@ -7,7 +7,7 @@ import ChangeAdmin from "./ChangeAdmin";
 import HomePage from "./HomePage";
 import { NotificationsProvider } from "@mantine/notifications";
 
-export var adress = import.meta.env.PROD ? "" : "http://localhost:3000";
+export var address = import.meta.env.PROD ? "" : "http://localhost:3000";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

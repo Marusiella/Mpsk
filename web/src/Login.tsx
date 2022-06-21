@@ -12,7 +12,7 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useNavigate } from "react-router-dom";
-import { adress } from "./main";
+import { address } from "./main";
 import { Notification } from "@mantine/core";
 import { X } from "tabler-icons-react";
 import { showNotification } from "@mantine/notifications";
@@ -28,7 +28,7 @@ interface LoginResponse {
 export default function App() {
   let navigate = useNavigate();
   async function HandleLogin(params: FormData) {
-    var a = await fetch(adress + "/api/v1/login", {
+    var a = await fetch(address + "/api/v1/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

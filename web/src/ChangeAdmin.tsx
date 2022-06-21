@@ -10,7 +10,7 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { adress } from "./main";
+import { address } from "./main";
 import { useNavigate } from "react-router-dom";
 
 interface FormData {
@@ -26,7 +26,7 @@ interface ChangeData {
 export default function App() {
   let navigate = useNavigate();
   function HandleLogin(params: FormData) {
-    fetch(adress + "/api/v1/adduser", {
+    fetch(address + "/api/v1/adduser", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -44,7 +44,7 @@ export default function App() {
       .then((res) => {
         console.log(res);
       });
-    fetch(adress + "/api/v1/changeadmin", { credentials: "include" })
+    fetch(address + "/api/v1/changeadmin", { credentials: "include" })
       .then((res) => res.json())
       .then((res: ChangeData) =>
         res.result == "success" ? navigate("/") : console.log("error")

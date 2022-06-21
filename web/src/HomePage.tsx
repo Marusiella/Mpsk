@@ -13,7 +13,7 @@ import {
   Box,
   MantineTheme,
 } from "@mantine/core";
-import { adress } from "./main";
+import { address } from "./main";
 import useSWR from "swr";
 import { Group } from "./models";
 
@@ -42,7 +42,7 @@ export default function HomePage() {
   const [opened, setOpened] = useState(false);
   const [root, setRoot] = useState<Group[]>([]);
   function Fetch() {
-    fetch(adress + "/api/v1/gettasks", {
+    fetch(address + "/api/v1/gettasks", {
       credentials: "include",
     })
       .then((res) => res.json())

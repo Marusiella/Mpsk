@@ -47,8 +47,15 @@ export default function HomePage() {
     })
       .then((res) => res.json())
       .then((data: Group[]) => {
-        console.log(data);
-        setRoot(data);
+        console.log([data]);
+        try {
+          data.map(() => {});
+          setRoot(data);
+        } catch (error) {
+          // @ts-ignore
+          // TODO: it's work, but it's not good, need to fix it
+          setRoot([data]);
+        }
       });
   }
   useEffect(() => {

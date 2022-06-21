@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-
+	// TODO: make passwords safer
 	app := fiber.New(fiber.Config{
 		BodyLimit: 1024 * 1024 * 512, // 512MB
 	})

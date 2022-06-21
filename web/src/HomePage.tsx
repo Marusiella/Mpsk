@@ -45,7 +45,7 @@ function BoxTheme(theme: MantineTheme) {
         ? theme.colors.dark[6]
         : theme.colors.gray[0],
     textAlign: "left",
-    padding: theme.spacing.xl,
+    padding: theme.spacing.lg,
     borderRadius: theme.radius.md,
     cursor: "pointer",
 
@@ -134,8 +134,11 @@ export default function HomePage() {
     >
       {root?.map((item) => (
         <>
-          {/* @ts-ignore */}
-          <Box sx={(theme) => BoxTheme(theme)} id={String(item.ID)}>
+          {/* @ts-ignore sx={(theme) => BoxTheme(theme)} */}
+          <Box
+            id={String(item.ID)}
+            sx={(theme) => ({ padding: theme.spacing.lg })}
+          >
             <Text
               sx={{
                 fontSize: "3em",
@@ -150,7 +153,18 @@ export default function HomePage() {
           <Box sx={(theme) => BoxTheme(theme)} id={String(item.ID)}>
             {item.Tasks.map((task) => (
               <div key={task.ID}>
-                <Text>{task.Name}</Text>
+                <Text sx={{ fontSize: 25 }}>{task.Name}</Text>
+                <Text
+                  sx={{
+                    fontSize: 15,
+                    textOverflow: "ellipsis",
+                    overflow: "hidden",
+                    maxWidth: "30vw",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {task.Description}
+                </Text>
               </div>
             ))}
           </Box>

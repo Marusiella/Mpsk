@@ -9,6 +9,7 @@ import (
 func Configure(app *fiber.App) {
 	app.Static("/", "public")
 	app.Static("/changeAdmin", "public")
+	app.Static("/home", "public")
 	api := app.Group("/api")
 	v1 := api.Group("/v1")
 	v1.Get("/getusers", controllers.GetUsers)

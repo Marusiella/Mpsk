@@ -33,7 +33,7 @@ type Task struct {
 	gorm.Model
 	Name        string
 	Description string
-	Done        bool
+	Hidden      bool
 	// Group       *[]Group `gorm:"many2many:group_tasks;"`
 }
 type NoneType struct {

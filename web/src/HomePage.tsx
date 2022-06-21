@@ -15,28 +15,7 @@ import {
 } from "@mantine/core";
 import { adress } from "./main";
 import useSWR from "swr";
-
-export interface Task {
-  ID: number;
-  CreatedAt: Date;
-  UpdatedAt: Date;
-  DeletedAt?: any;
-  Name: string;
-  Description: string;
-  Done: boolean;
-}
-
-export interface RootObject {
-  ID: number;
-  CreatedAt: Date;
-  UpdatedAt: Date;
-  DeletedAt?: any;
-  Name: string;
-  Users?: any;
-  Tasks: Task[];
-}
-
-// const fetcher = (...args) => fetch(...args).then((res) => res.json());
+import { Group } from "./models";
 
 function BoxTheme(theme: MantineTheme) {
   return {
@@ -61,13 +40,13 @@ function BoxTheme(theme: MantineTheme) {
 export default function HomePage() {
   const theme = useMantineTheme();
   const [opened, setOpened] = useState(false);
-  const [root, setRoot] = useState<RootObject[]>([]);
+  const [root, setRoot] = useState<Group[]>([]);
   function Fetch() {
     fetch(adress + "/api/v1/gettasks", {
       credentials: "include",
     })
       .then((res) => res.json())
-      .then((data: RootObject[]) => {
+      .then((data: Group[]) => {
         console.log(data);
         setRoot(data);
       });

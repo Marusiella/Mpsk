@@ -15,7 +15,7 @@ import {
 } from "@mantine/core";
 import { address } from "./main";
 import useSWR from "swr";
-import { Group } from "./models";
+import { Group, User } from "./models";
 
 function BoxTheme(theme: MantineTheme) {
   return {
@@ -41,6 +41,7 @@ export default function HomePage() {
   const theme = useMantineTheme();
   const [opened, setOpened] = useState(false);
   const [root, setRoot] = useState<Group[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   function Fetch() {
     fetch(address + "/api/v1/gettasks", {
       credentials: "include",
@@ -56,6 +57,15 @@ export default function HomePage() {
           // TODO: it's work, but it's not good, need to fix it
           setRoot([data]);
         }
+      });
+    // http://127.0.0.1:3000/api/v1/getusers
+    fetch(address + "/api/v1/getusers", {
+      credentials: "include",
+    })
+      .then((res) => res.json())
+      .then((data: User[]) => {
+        console.log(data);
+        setUsers(data);
       });
   }
   useEffect(() => {
@@ -91,8 +101,37 @@ export default function HomePage() {
       }
       aside={
         <MediaQuery smallerThan="sm" styles={{ display: "none" }}>
-          <Aside p="md" hiddenBreakpoint="sm" width={{ sm: 180, lg: 280 }}>
-            <Text>Application sidebar</Text>
+          <Aside p="md" hiddenBreakpoint="sm" width={{ sm: 200, lg: 300 }}>
+            {users?.map((user) => (
+              <Box
+                key={user.ID}
+                onClick={() => {
+                  console.log(user);
+                }}
+                sx={{
+                  backgroundColor:
+                    theme.colorScheme === "dark"
+                      ? theme.colors.dark[6]
+                      : theme.colors.gray[0],
+                  textAlign: "left",
+                  padding: theme.spacing.xs,
+                  marginBottom: theme.spacing.xs,
+                  borderRadius: theme.radius.md,
+                  cursor: "pointer",
+
+                  "&:hover": {
+                    backgroundColor:
+                      theme.colorScheme === "dark"
+                        ? theme.colors.dark[5]
+                        : theme.colors.gray[1],
+                  },
+                }}
+              >
+                <Text>
+                  {user.Name} {user.Surname}
+                </Text>
+              </Box>
+            ))}
           </Aside>
         </MediaQuery>
       }

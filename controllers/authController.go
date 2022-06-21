@@ -387,8 +387,8 @@ func LoginUser(c *fiber.Ctx) error {
 	}
 
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256, models.Claims{
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(secrets.LIFE_TIME).Unix(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(secrets.LIFE_TIME)),
 		},
 		User: user,
 	})
@@ -396,6 +396,7 @@ func LoginUser(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	database.DB.Model(&models.User{}).Where("email = ? AND password = ?", data.Email, data.Password).Update("last_login_time", time.Now())
 	cookie := fiber.Cookie{
 		Name:    "JWT",
 		Value:   token,

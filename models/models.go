@@ -1,6 +1,8 @@
 package models
 
 import (
+	"time"
+
 	"github.com/golang-jwt/jwt/v4"
 	"gorm.io/gorm"
 )
@@ -11,15 +13,17 @@ const (
 )
 
 type Claims struct {
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 	User User
 }
 type User struct {
 	gorm.Model
-	Name     string
-	Email    string
-	Password string
-	Role     int
+	LastLoginTime time.Time `gorm:"column:last_login_time"`
+	Name          string
+	Surname       string
+	Email         string
+	Password      string
+	Role          int
 	// Groups   []*Group `gorm:"many2many:user_groups;"`
 }
 type Group struct {

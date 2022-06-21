@@ -17,3 +17,15 @@ export interface Task {
     Users?: any;
     Tasks: Task[];
   }
+  export interface User {
+    ID: number;
+    CreatedAt: Date;
+    UpdatedAt: Date;
+    DeletedAt?: any;
+    LastLoginTime: Date;
+    Name: string;
+    Email: string;
+    Password: string;
+    Role: number;
+    Surname: string;
+}

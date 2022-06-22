@@ -463,3 +463,17 @@ func ChangeAdmin(c *fiber.Ctx) error {
 		return c.Status(403).SendString("Forbidden")
 	}
 }
+func GetInformationAboutMe(c *fiber.Ctx) error {
+	token := c.Cookies("JWT")
+	user := &models.Claims{}
+	_, err := jwt.ParseWithClaims(token, user, func(t *jwt.Token) (interface{}, error) {
+		return []byte(secrets.SECRET_JWT), nil
+	})
+	if err != nil {
+		return c.Status(401).SendString("Unauthorized")
+	}
+	if user.User.ID == 0 {
+		return c.Status(401).SendString("Unauthorized")
+	}
+	return c.JSON(user.User)
+}

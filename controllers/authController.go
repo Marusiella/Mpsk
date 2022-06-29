@@ -9,6 +9,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func GetUsers(c *fiber.Ctx) error {
@@ -55,6 +56,27 @@ func AddUser(c *fiber.Ctx) error {
 		if err := c.BodyParser(&user); err != nil {
 			return err
 		}
+		hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return c.Status(500).SendString("Internal server error")
+		}
+		// var NewUsr = models.User{
+		// 	Name:          user.Name,
+		// 	Surname:       user.Surname,
+		// 	Email:         user.Email,
+		// 	Password:      hash,
+		// 	Role:          user.Role,
+		// 	LastLoginTime: user.LastLoginTime,
+		// }
+		user = models.User{
+			Name:          user.Name,
+			Surname:       user.Surname,
+			Email:         user.Email,
+			Password:      string(hash),
+			Role:          user.Role,
+			LastLoginTime: user.LastLoginTime,
+		}
+
 		database.DB.Create(&user)
 		return c.JSON(fiber.Map{"message": "User created successfully"})
 	} else {
@@ -380,8 +402,14 @@ func LoginUser(c *fiber.Ctx) error {
 		log.Println(string(c.Body()))
 		return err
 	}
+
 	var user models.User
-	database.DB.Where("email = ? AND password = ?", data.Email, data.Password).First(&user) // 2a@a.pl    asasas
+	database.DB.Where("email = ?", data.Email).First(&user) // 2a@a.pl    asasas
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(data.Password))
+	if err != nil {
+		return c.Status(401).SendString("Unauthorized")
+	}
+
 	if user.ID == 0 {
 		return c.Status(400).SendString("User not found")
 	}

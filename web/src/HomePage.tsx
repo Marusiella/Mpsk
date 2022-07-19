@@ -50,6 +50,7 @@ export default function HomePage() {
   }, []);
 
   return (
+    // @ts-ignore
     <ManageTasks>
       <Box>
         {root?.map((item) => (

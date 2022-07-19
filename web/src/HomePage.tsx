@@ -16,6 +16,7 @@ import {
   Box,
   MantineTheme,
 } from "@mantine/core";
+import MainLayout from "./MainLayout";
 export default function HomePage() {
   const [root, setRoot] = useState<Group[]>([]);
   const [users, setUsers] = useState<User[]>([]);
@@ -50,8 +51,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    // @ts-ignore
-    <ManageTasks>
+    <MainLayout>
       <Box>
         {root?.map((item) => (
           <>
@@ -92,6 +92,6 @@ export default function HomePage() {
           </>
         ))}
       </Box>
-    </ManageTasks>
+    </MainLayout>
   );
 }

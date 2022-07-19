@@ -40,7 +40,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             <Route path="/" element={<App />} />
             <Route path="/changeAdmin" element={<ChangeAdmin />} />
             <Route path="/home" element={<HomePage />} />
-            <Route path="/tasks" element={<ManageTasks />} />
+            <Route path="/home/tasks" element={<ManageTasks />} />
           </Routes>
         </BrowserRouter>
       </NotificationsProvider>

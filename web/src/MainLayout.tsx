@@ -15,9 +15,8 @@ import {
 } from "@mantine/core";
 import { address } from "./main";
 // import useSWR from "swr";
+import { Link, useLocation, useMatch } from "react-router-dom";
 import { Group, User } from "./models";
-import {} from "tabler-icons-react";
-import { Link } from "react-router-dom";
 
 function BoxTheme(theme: MantineTheme, type: number = 0) {
   if (type === 0) {
@@ -95,6 +94,7 @@ export default function MainLayout(props: any) {
   useEffect(() => {
     Fetch();
   }, []);
+  let location = useLocation();
 
   return (
     <AppShell
@@ -118,19 +118,44 @@ export default function MainLayout(props: any) {
         >
           {/* <Navbar.Section></Navbar.Section> */}
           <Navbar.Section grow mt="md">
-            {/* @ts-ignore */}
-            <Box sx={(theme) => BoxTheme(theme, 1)}>
-              <Text>Manage tasks</Text>
-            </Box>
-            {/* @ts-ignore */}
-            <Box sx={(theme) => BoxTheme(theme, 1)}>
-              <Text>Manage groups</Text>
-            </Box>
-            {/* @ts-ignore */}
-            <Box sx={(theme) => BoxTheme(theme, 1)}>
-              <Text>Manage users</Text>
-            </Box>
-
+            <Link
+              to={"/home/tasks"}
+              style={{
+                color: "black",
+                textDecoration: "none",
+                fontWeight:
+                  location.pathname === "/home/tasks" ? "bold" : "normal",
+              }}
+            >
+              {/* @ts-ignore */}
+              <Box sx={(theme) => BoxTheme(theme, 1)}>
+                <Text>Manage tasks</Text>
+              </Box>
+            </Link>
+            <Link
+              to={"/home/groups"}
+              style={{
+                color: "black",
+                textDecoration: "none",
+                fontWeight:
+                  location.pathname === "/home/groups" ? "bold" : "normal",
+              }}
+            >
+              {/* @ts-ignore */}
+              <Box sx={(theme) => BoxTheme(theme, 1)}>Manage groups</Box>
+            </Link>{" "}
+            <Link
+              to={"/home/users"}
+              style={{
+                color: "black",
+                textDecoration: "none",
+                fontWeight:
+                  location.pathname === "/home/users" ? "bold" : "normal",
+              }}
+            >
+              {/* @ts-ignore */}
+              <Box sx={(theme) => BoxTheme(theme, 1)}>Manage users</Box>{" "}
+            </Link>
             {/* Links sections */}
           </Navbar.Section>
           <Navbar.Section>{/* Footer with user */}</Navbar.Section>

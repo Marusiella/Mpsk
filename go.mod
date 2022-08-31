@@ -3,7 +3,7 @@ module filemaod
 go 1.18
 
 require (
-	github.com/gofiber/fiber/v2 v2.35.0
+	github.com/gofiber/fiber/v2 v2.37.0
 	github.com/golang-jwt/jwt/v4 v4.4.2
 	gorm.io/driver/sqlite v1.3.6
 	gorm.io/gorm v1.23.8
@@ -16,7 +16,7 @@ require (
 	github.com/klauspost/compress v1.15.6 // indirect
 	github.com/mattn/go-sqlite3 v1.14.13 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.38.0 // indirect
+	github.com/valyala/fasthttp v1.39.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d
 	golang.org/x/sys v0.0.0-20220615213510-4f61da869c0c // indirect
